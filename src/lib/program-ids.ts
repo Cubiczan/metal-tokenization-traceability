@@ -5,10 +5,10 @@ export const PROGRAM_IDS = {
   COMPLIANCE_ENGINE: "C7NBwyL5mdKy3fLiSJn1kuKJtLH2ein7S5PH385ctZYA",
 } as const;
 
-// Token mint addresses — update after running create-mints.sh
+// Token-2022 mint addresses (Devnet)
 export const TOKEN_MINTS = {
-  xGLD: "11111111111111111111111111111111", // placeholder until create-mints.sh
-  xSLV: "11111111111111111111111111111111",
-  xPLT: "11111111111111111111111111111111",
-  xPLD: "11111111111111111111111111111111",
+  xGLD: "UPHj5uv7TqLWh98asudU9yTcwzskpJY2d575jjm9G9J",
+  xSLV: "6oqfZpztVvuP3XBWjzmJ9iXqxjJ8t1sJmCtv4BZP1zLs",
+  xPLT: "945eyVc4rL8XJFcUHns6ca6voWNufsJuDR55xFGovsrH",
+  xPLD: "ACLCySEeHVR5mxpmh98PAWq35FANZov63Y5KS4FS4ctN",
 } as const;
