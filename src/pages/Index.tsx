@@ -53,7 +53,6 @@ export default function Explorer() {
             )}
           </div>
         </div>
-        </div>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
           Metal-Backed Token <span className="text-primary">Explorer</span>
         </h1>
