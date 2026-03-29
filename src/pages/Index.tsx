@@ -38,9 +38,21 @@ export default function Explorer() {
     <div className="space-y-8">
       {/* Hero */}
       <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-          <span className="text-xs text-success font-medium uppercase tracking-wider">Live · Proof of Reserves</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {isLive ? (
+              <>
+                <Wifi className="w-3.5 h-3.5 text-success" />
+                <span className="text-xs text-success font-medium uppercase tracking-wider">Live Pyth Feeds · Proof of Reserves</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="w-3.5 h-3.5 text-warning" />
+                <span className="text-xs text-warning font-medium uppercase tracking-wider">{pythLoading ? "Connecting to Pyth..." : "Mock Data · Pyth Unavailable"}</span>
+              </>
+            )}
+          </div>
+        </div>
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
           Metal-Backed Token <span className="text-primary">Explorer</span>
