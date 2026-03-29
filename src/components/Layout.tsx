@@ -1,8 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Activity, BarChart3, Building2, Globe, Menu, Pickaxe, Shield, X } from "lucide-react";
+import { Activity, Building2, Globe, Menu, Pickaxe, Shield, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
+import WalletButton from "./WalletButton";
+import { useSolanaTPS } from "@/hooks/use-solana";
+import { SOLANA_NETWORK } from "./SolanaProvider";
 
 const navigation = [
   { name: "Explorer", href: "/", icon: Globe },
@@ -13,14 +16,15 @@ const navigation = [
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data: tps } = useSolanaTPS();
+
+  const networkLabel = SOLANA_NETWORK === "mainnet-beta" ? "Mainnet" : "Devnet";
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Nav */}
       <header className="sticky top-0 z-50 glass border-b border-border/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
             <Link to="/" className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg gradient-gold flex items-center justify-center">
                 <Shield className="w-4 h-4 text-primary-foreground" />
@@ -31,7 +35,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </div>
             </Link>
 
-            {/* Desktop Nav */}
             <nav className="hidden md:flex items-center gap-1">
               {navigation.map((item) => {
                 const active = location.pathname === item.href;
@@ -53,26 +56,27 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               })}
             </nav>
 
-            {/* Status */}
             <div className="hidden md:flex items-center gap-3">
               <div className="flex items-center gap-2 text-xs">
                 <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                <span className="text-muted-foreground">Solana Mainnet</span>
+                <span className="text-muted-foreground">Solana {networkLabel}</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary text-xs font-mono text-muted-foreground">
                 <Activity className="w-3 h-3" />
-                <span>65,412 TPS</span>
+                <span>{tps ? `${tps.toLocaleString()} TPS` : "..."}</span>
               </div>
+              <WalletButton />
             </div>
 
-            {/* Mobile toggle */}
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileOpen(!mobileOpen)}>
-              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </Button>
+            <div className="flex md:hidden items-center gap-2">
+              <WalletButton />
+              <Button variant="ghost" size="icon" onClick={() => setMobileOpen(!mobileOpen)}>
+                {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Mobile Nav */}
         {mobileOpen && (
           <div className="md:hidden border-t border-border/50 p-4 space-y-1">
             {navigation.map((item) => {
