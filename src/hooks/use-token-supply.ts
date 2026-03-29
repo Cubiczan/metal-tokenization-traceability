@@ -19,8 +19,6 @@ async function fetchTokenSupplies(): Promise<TokenSupplyInfo[]> {
 
   for (const [symbol, mintAddress] of Object.entries(TOKEN_MINTS)) {
     try {
-
-    try {
       const mint = new PublicKey(mintAddress);
       const supplyResponse = await connection.getTokenSupply(mint);
       const supply = Number(supplyResponse.value.amount) / Math.pow(10, supplyResponse.value.decimals);
@@ -32,7 +30,7 @@ async function fetchTokenSupplies(): Promise<TokenSupplyInfo[]> {
       });
     } catch (err) {
       console.warn(`Failed to fetch supply for ${symbol}:`, err);
-      results.push({ symbol, supply: null, decimals: 9, isLive: false });
+      results.push({ symbol, supply: null, decimals: 6, isLive: false });
     }
   }
 
