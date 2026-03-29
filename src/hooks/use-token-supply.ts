@@ -2,17 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { SOLANA_RPC_ENDPOINT } from "@/components/SolanaProvider";
 
-// These are placeholder mint addresses for the MetalX tokens (Token-2022 program)
-// In production, replace with actual deployed mint addresses
-const TOKEN_2022_PROGRAM_ID = new PublicKey("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
+import { TOKEN_MINTS } from "@/lib/program-ids";
 
-// Placeholder mint addresses — replace with real deployed mints
-export const TOKEN_MINTS: Record<string, string> = {
-  xGLD: "11111111111111111111111111111111", // placeholder
-  xSLV: "11111111111111111111111111111111", // placeholder
-  xPLT: "11111111111111111111111111111111", // placeholder
-  xPLD: "11111111111111111111111111111111", // placeholder
-};
+const TOKEN_2022_PROGRAM_ID = new PublicKey("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
 
 export interface TokenSupplyInfo {
   symbol: string;
