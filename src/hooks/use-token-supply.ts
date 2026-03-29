@@ -18,11 +18,7 @@ async function fetchTokenSupplies(): Promise<TokenSupplyInfo[]> {
   const results: TokenSupplyInfo[] = [];
 
   for (const [symbol, mintAddress] of Object.entries(TOKEN_MINTS)) {
-    // Skip placeholder addresses
-    if (mintAddress === "11111111111111111111111111111111") {
-      results.push({ symbol, supply: null, decimals: 9, isLive: false });
-      continue;
-    }
+    try {
 
     try {
       const mint = new PublicKey(mintAddress);
