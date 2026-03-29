@@ -46,19 +46,25 @@ export default function Explorer() {
     <div className="space-y-8">
       {/* Hero */}
       <div className="space-y-2">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             {isLive ? (
               <>
                 <Wifi className="w-3.5 h-3.5 text-success" />
-                <span className="text-xs text-success font-medium uppercase tracking-wider">Live Pyth Feeds · Proof of Reserves</span>
+                <span className="text-xs text-success font-medium uppercase tracking-wider">Live Pyth Feeds</span>
               </>
             ) : (
               <>
                 <WifiOff className="w-3.5 h-3.5 text-warning" />
-                <span className="text-xs text-warning font-medium uppercase tracking-wider">{pythLoading ? "Connecting to Pyth..." : "Mock Data · Pyth Unavailable"}</span>
+                <span className="text-xs text-warning font-medium uppercase tracking-wider">{pythLoading ? "Connecting to Pyth..." : "Mock Data"}</span>
               </>
             )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Link2 className={`w-3.5 h-3.5 ${hasOnChainSupply ? 'text-success' : 'text-muted-foreground'}`} />
+            <span className={`text-xs font-medium uppercase tracking-wider ${hasOnChainSupply ? 'text-success' : 'text-muted-foreground'}`}>
+              {hasOnChainSupply ? "On-Chain Supply" : "Mock Supply · Deploy mints to activate"}
+            </span>
           </div>
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
