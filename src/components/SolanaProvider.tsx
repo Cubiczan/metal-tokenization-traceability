@@ -5,11 +5,12 @@ import { PhantomWalletAdapter } from "@solana/wallet-adapter-phantom";
 import { SolflareWalletAdapter } from "@solana/wallet-adapter-solflare";
 import "@solana/wallet-adapter-react-ui/styles.css";
 
-// Default to mainnet; change to devnet for testing
 export const SOLANA_NETWORK = "mainnet-beta";
-export const SOLANA_RPC_ENDPOINT = 
+
+// Use a public RPC that doesn't rate-limit as aggressively
+export const SOLANA_RPC_ENDPOINT =
   SOLANA_NETWORK === "mainnet-beta"
-    ? "https://api.mainnet-beta.solana.com"
+    ? "https://solana-mainnet.g.alchemy.com/v2/demo"
     : "https://api.devnet.solana.com";
 
 interface Props {
