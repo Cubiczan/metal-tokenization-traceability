@@ -94,16 +94,33 @@ export default function Explorer() {
                   <span className="font-bold">{m.symbol}</span>
                 </div>
                 <span className={`text-xs font-medium ${m.change24h >= 0 ? 'text-success' : 'text-destructive'}`}>
-                  {m.change24h >= 0 ? '+' : ''}{m.change24h}%
+                  {m.change24h >= 0 ? '+' : ''}{m.change24h.toFixed(2)}%
                 </span>
               </div>
               <p className="text-2xl font-bold">{formatUSD(m.spotPrice)}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Supply: {formatNumber(m.totalSupply)} oz · {formatUSD(m.totalSupply * m.spotPrice)}
-              </p>
-              <div className="mt-3 flex items-center gap-1.5">
-                <Shield className="w-3 h-3 text-success" />
-                <span className="text-xs text-success font-medium">100% Backed</span>
+              <div className="mt-2 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Supply</span>
+                  <span className="text-xs font-mono">{formatNumber(m.totalSupply)} oz</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Market Cap</span>
+                  <span className="text-xs font-mono">{formatUSD(m.totalSupply * m.spotPrice)}</span>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Shield className="w-3 h-3 text-success" />
+                  <span className="text-xs text-success font-medium">100% Backed</span>
+                </div>
+                {(() => {
+                  const onChain = tokenSupplies?.find(t => t.symbol === m.symbol);
+                  return (
+                    <span className={`text-[10px] font-mono ${onChain?.isLive ? 'text-success' : 'text-muted-foreground'}`}>
+                      {onChain?.isLive ? '⛓ on-chain' : '◌ mock'}
+                    </span>
+                  );
+                })()}
               </div>
             </CardContent>
           </Card>
