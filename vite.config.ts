@@ -19,4 +19,25 @@ export default defineConfig(({ mode }) => ({
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"],
   },
+  optimizeDeps: {
+    include: [
+      "react",
+      "react-dom",
+      "@solana/wallet-adapter-react",
+      "@solana/wallet-adapter-react-ui",
+      "@solana/wallet-adapter-phantom",
+      "@solana/wallet-adapter-solflare",
+      "@solana/wallet-adapter-base",
+      "@solana/web3.js",
+    ],
+    esbuildOptions: {
+      // Node.js global to browser globalThis
+      define: {
+        global: "globalThis",
+      },
+    },
+  },
+  define: {
+    "process.env": {},
+  },
 }));

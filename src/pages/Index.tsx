@@ -1,31 +1,39 @@
 import { useMemo } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { Shield, TrendingUp, Vault, BarChart3, CheckCircle2, Globe, Wifi, WifiOff } from "lucide-react";
+import { Shield, TrendingUp, Vault, BarChart3, CheckCircle2, Globe, Wifi, WifiOff, Link2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import MetricCard from "@/components/MetricCard";
 import StatusBadge from "@/components/StatusBadge";
 import { metals as mockMetals, vaults, supplyHistory, attestations, formatNumber, formatUSD } from "@/lib/mock-data";
 import { usePythPrices } from "@/hooks/use-pyth-prices";
+import { useTokenSupplies } from "@/hooks/use-token-supply";
 
 const PIE_COLORS = ["hsl(45,93%,58%)", "hsl(210,10%,72%)", "hsl(200,15%,78%)", "hsl(35,20%,65%)"];
 
 export default function Explorer() {
   const { data: pythPrices, isLoading: pythLoading, isError: pythError } = usePythPrices();
+  const { data: tokenSupplies } = useTokenSupplies();
 
-  // Merge live Pyth prices with mock metal data
+  // Merge live Pyth prices and on-chain supply with mock metal data
   const metals = useMemo(() => {
     return mockMetals.map((m) => {
       const live = pythPrices?.find((p) => p.metal === m.metalType);
+      const onChain = tokenSupplies?.find((t) => t.symbol === m.symbol);
+      let updated = { ...m };
       if (live && live.price > 0) {
         const change = ((live.price - m.spotPrice) / m.spotPrice) * 100;
-        return { ...m, spotPrice: live.price, change24h: change };
+        updated = { ...updated, spotPrice: live.price, change24h: change };
       }
-      return m;
+      if (onChain?.isLive && onChain.supply !== null) {
+        updated = { ...updated, totalSupply: onChain.supply, totalBacked: onChain.supply };
+      }
+      return updated;
     });
-  }, [pythPrices]);
+  }, [pythPrices, tokenSupplies]);
 
   const isLive = !pythLoading && !pythError && !!pythPrices;
+  const hasOnChainSupply = tokenSupplies?.some((t) => t.isLive) ?? false;
 
   const getTotalMarketCap = () => metals.reduce((s, m) => s + m.totalSupply * m.spotPrice, 0);
 
@@ -38,19 +46,25 @@ export default function Explorer() {
     <div className="space-y-8">
       {/* Hero */}
       <div className="space-y-2">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             {isLive ? (
               <>
                 <Wifi className="w-3.5 h-3.5 text-success" />
-                <span className="text-xs text-success font-medium uppercase tracking-wider">Live Pyth Feeds · Proof of Reserves</span>
+                <span className="text-xs text-success font-medium uppercase tracking-wider">Live Pyth Feeds</span>
               </>
             ) : (
               <>
                 <WifiOff className="w-3.5 h-3.5 text-warning" />
-                <span className="text-xs text-warning font-medium uppercase tracking-wider">{pythLoading ? "Connecting to Pyth..." : "Mock Data · Pyth Unavailable"}</span>
+                <span className="text-xs text-warning font-medium uppercase tracking-wider">{pythLoading ? "Connecting to Pyth..." : "Mock Data"}</span>
               </>
             )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Link2 className={`w-3.5 h-3.5 ${hasOnChainSupply ? 'text-success' : 'text-muted-foreground'}`} />
+            <span className={`text-xs font-medium uppercase tracking-wider ${hasOnChainSupply ? 'text-success' : 'text-muted-foreground'}`}>
+              {hasOnChainSupply ? "On-Chain Supply" : "Mock Supply · Deploy mints to activate"}
+            </span>
           </div>
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
@@ -80,16 +94,33 @@ export default function Explorer() {
                   <span className="font-bold">{m.symbol}</span>
                 </div>
                 <span className={`text-xs font-medium ${m.change24h >= 0 ? 'text-success' : 'text-destructive'}`}>
-                  {m.change24h >= 0 ? '+' : ''}{m.change24h}%
+                  {m.change24h >= 0 ? '+' : ''}{m.change24h.toFixed(2)}%
                 </span>
               </div>
               <p className="text-2xl font-bold">{formatUSD(m.spotPrice)}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Supply: {formatNumber(m.totalSupply)} oz · {formatUSD(m.totalSupply * m.spotPrice)}
-              </p>
-              <div className="mt-3 flex items-center gap-1.5">
-                <Shield className="w-3 h-3 text-success" />
-                <span className="text-xs text-success font-medium">100% Backed</span>
+              <div className="mt-2 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Supply</span>
+                  <span className="text-xs font-mono">{formatNumber(m.totalSupply)} oz</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Market Cap</span>
+                  <span className="text-xs font-mono">{formatUSD(m.totalSupply * m.spotPrice)}</span>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Shield className="w-3 h-3 text-success" />
+                  <span className="text-xs text-success font-medium">100% Backed</span>
+                </div>
+                {(() => {
+                  const onChain = tokenSupplies?.find(t => t.symbol === m.symbol);
+                  return (
+                    <span className={`text-[10px] font-mono ${onChain?.isLive ? 'text-success' : 'text-muted-foreground'}`}>
+                      {onChain?.isLive ? '⛓ on-chain' : '◌ mock'}
+                    </span>
+                  );
+                })()}
               </div>
             </CardContent>
           </Card>
