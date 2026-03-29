@@ -1,20 +1,38 @@
+import { useMemo } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { Shield, TrendingUp, Vault, BarChart3, CheckCircle2, Globe } from "lucide-react";
+import { Shield, TrendingUp, Vault, BarChart3, CheckCircle2, Globe, Wifi, WifiOff } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import MetricCard from "@/components/MetricCard";
 import StatusBadge from "@/components/StatusBadge";
-import { metals, vaults, supplyHistory, attestations, formatNumber, formatUSD, getTotalMarketCap } from "@/lib/mock-data";
-
-const vaultPieData = vaults.filter(v => v.status === 'Active').map(v => ({
-  name: v.name.split(' ')[0],
-  value: v.balances.reduce((s, b) => s + b.amount * (metals.find(m => m.metalType === b.metal)?.spotPrice || 0), 0),
-}));
+import { metals as mockMetals, vaults, supplyHistory, attestations, formatNumber, formatUSD } from "@/lib/mock-data";
+import { usePythPrices } from "@/hooks/use-pyth-prices";
 
 const PIE_COLORS = ["hsl(45,93%,58%)", "hsl(210,10%,72%)", "hsl(200,15%,78%)", "hsl(35,20%,65%)"];
 
 export default function Explorer() {
-  const totalBacked = metals.reduce((s, m) => s + m.totalBacked, 0);
+  const { data: pythPrices, isLoading: pythLoading, isError: pythError } = usePythPrices();
+
+  // Merge live Pyth prices with mock metal data
+  const metals = useMemo(() => {
+    return mockMetals.map((m) => {
+      const live = pythPrices?.find((p) => p.metal === m.metalType);
+      if (live && live.price > 0) {
+        const change = ((live.price - m.spotPrice) / m.spotPrice) * 100;
+        return { ...m, spotPrice: live.price, change24h: change };
+      }
+      return m;
+    });
+  }, [pythPrices]);
+
+  const isLive = !pythLoading && !pythError && !!pythPrices;
+
+  const getTotalMarketCap = () => metals.reduce((s, m) => s + m.totalSupply * m.spotPrice, 0);
+
+  const vaultPieData = vaults.filter(v => v.status === 'Active').map(v => ({
+    name: v.name.split(' ')[0],
+    value: v.balances.reduce((s, b) => s + b.amount * (metals.find(m => m.metalType === b.metal)?.spotPrice || 0), 0),
+  }));
 
   return (
     <div className="space-y-8">
