@@ -33,16 +33,22 @@ pub mod metal_mint {
         amount: u64,
         attestation_id: String,
     ) -> Result<()> {
-        let config = &mut ctx.accounts.mint_config;
-        require!(!config.paused, MetalError::MintPaused);
+        {
+            let config = &ctx.accounts.mint_config;
+            require!(!config.paused, MetalError::MintPaused);
+        }
         require!(amount > 0, MetalError::InvalidAmount);
         require!(attestation_id.len() <= 64, MetalError::AttestationTooLong);
 
+        // Capture PDA seed material before borrowing accounts for the CPI.
+        let config_mint = ctx.accounts.mint_config.mint;
+        let config_bump = ctx.accounts.mint_config.bump;
+
         // Mint tokens via Token-2022
         let seeds = &[
-            b"mint_config",
-            config.mint.as_ref(),
-            &[config.bump],
+            b"mint_config".as_ref(),
+            config_mint.as_ref(),
+            &[config_bump],
         ];
         let signer_seeds = &[&seeds[..]];
 
@@ -55,6 +61,7 @@ pub mod metal_mint {
         let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
         token_2022::mint_to(cpi_ctx, amount)?;
 
+        let config = &mut ctx.accounts.mint_config;
         config.total_minted = config.total_minted.checked_add(amount).unwrap();
 
         emit!(MintEvent {
@@ -215,7 +222,6 @@ pub struct MintEvent {
     pub metal_type: MetalType,
     pub amount: u64,
     pub recipient: Pubkey,
-    #[max_len(64)]
     pub attestation_id: String,
     pub timestamp: i64,
 }
