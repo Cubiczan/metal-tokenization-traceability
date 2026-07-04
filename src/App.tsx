@@ -8,6 +8,7 @@ import Layout from "@/components/Layout";
 import Index from "./pages/Index.tsx";
 import MineOperations from "./pages/MineOperations.tsx";
 import VaultDashboard from "./pages/VaultDashboard.tsx";
+import Traceability from "./pages/Traceability.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/mine" element={<MineOperations />} />
               <Route path="/vault" element={<VaultDashboard />} />
+              <Route path="/traceability" element={<Traceability />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>

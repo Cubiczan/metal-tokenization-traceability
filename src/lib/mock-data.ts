@@ -61,6 +61,33 @@ export interface Attestation {
   expiresAt: string;
 }
 
+export type CustodyEventType = 'Extraction' | 'Assay' | 'Transport' | 'Vaulting' | 'Transfer' | 'Redemption';
+
+export interface CustodyEvent {
+  hop: number;
+  type: CustodyEventType;
+  custodian: string;
+  location: string;
+  payloadHash: string;
+  timestamp: string;
+  txSignature: string;
+}
+
+export interface Batch {
+  batchId: string;
+  metal: string;
+  amountOz: number;
+  origin: string;
+  originVault: string;
+  currentCustodian: string;
+  transferCount: number;
+  createdAt: string;
+  updatedAt: string;
+  /** SHA-256 of the current off-chain commercial payload (assay certs, serials, shipping docs). */
+  payloadHash: string;
+  custody: CustodyEvent[];
+}
+
 export const metals: MetalToken[] = [
   { symbol: 'xGLD', name: 'Gold', metalType: 'Gold', spotPrice: 2438.50, change24h: 1.24, totalSupply: 125430, totalBacked: 125430, backingRatio: 1.0, mintFeeBps: 25, redeemFeeBps: 50, color: 'gold' },
   { symbol: 'xSLV', name: 'Silver', metalType: 'Silver', spotPrice: 31.42, change24h: -0.58, totalSupply: 2450000, totalBacked: 2450000, backingRatio: 1.0, mintFeeBps: 30, redeemFeeBps: 60, color: 'silver' },
@@ -105,6 +132,64 @@ export const supplyHistory = [
   { date: '2025-05', xGLD: 108000, xSLV: 2100000, xPLT: 39000, xPLD: 16500 },
   { date: '2025-06', xGLD: 125430, xSLV: 2450000, xPLT: 45200, xPLD: 18750 },
 ];
+
+export const batches: Batch[] = [
+  {
+    batchId: 'BAT-GLD-0001',
+    metal: 'Gold',
+    amountOz: 524,
+    origin: 'Boddington Mine, AU',
+    originVault: 'London LBMA Vault',
+    currentCustodian: 'Brinks',
+    transferCount: 2,
+    createdAt: '2025-06-01T08:00:00Z',
+    updatedAt: '2025-06-14T08:30:00Z',
+    payloadHash: '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
+    custody: [
+      { hop: 0, type: 'Extraction', custodian: 'Newmont Boddington', location: 'Boddington, AU', payloadHash: '2c26b46b68ffc68ff99b453c1d304134', timestamp: '2025-06-01T08:00:00Z', txSignature: '2HkMn7...xR4q' },
+      { hop: 1, type: 'Assay', custodian: 'Perth Mint Refinery', location: 'Perth, AU', payloadHash: '486ea46224d1bb4fb680f34f7c9ad96a', timestamp: '2025-06-05T10:30:00Z', txSignature: '4LpQr9...yT6w' },
+      { hop: 2, type: 'Vaulting', custodian: 'Brinks', location: 'London, UK', payloadHash: '9f86d081884c7d659a2feaa0c55ad015', timestamp: '2025-06-14T08:30:00Z', txSignature: '6NrSt1...zV8e' },
+    ],
+  },
+  {
+    batchId: 'BAT-SLV-0007',
+    metal: 'Silver',
+    amountOz: 850000,
+    origin: 'Cannington Mine, AU',
+    originVault: 'Perth PMR Vault',
+    currentCustodian: 'Perth Mint',
+    transferCount: 1,
+    createdAt: '2025-05-20T09:00:00Z',
+    updatedAt: '2025-06-12T14:00:00Z',
+    payloadHash: 'd7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592',
+    custody: [
+      { hop: 0, type: 'Extraction', custodian: 'South32 Cannington', location: 'Cannington, AU', payloadHash: '5feceb66ffc86f38d952786c6d696c79', timestamp: '2025-05-20T09:00:00Z', txSignature: '8PtUv3...aX0g' },
+      { hop: 1, type: 'Vaulting', custodian: 'Perth Mint', location: 'Perth, AU', payloadHash: 'd7a8fbb307d7809469ca9abcb0082e4f', timestamp: '2025-06-12T14:00:00Z', txSignature: '0RvWx5...bZ2i' },
+    ],
+  },
+  {
+    batchId: 'BAT-PLT-0003',
+    metal: 'Platinum',
+    amountOz: 221,
+    origin: 'Mogalakwena Mine, ZA',
+    originVault: 'Zurich EQ Vault',
+    currentCustodian: 'EQ Bank',
+    transferCount: 3,
+    createdAt: '2025-05-10T07:00:00Z',
+    updatedAt: '2025-06-14T06:15:00Z',
+    payloadHash: '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b',
+    custody: [
+      { hop: 0, type: 'Extraction', custodian: 'Anglo American Platinum', location: 'Mogalakwena, ZA', payloadHash: 'e3b0c44298fc1c149afbf4c8996fb924', timestamp: '2025-05-10T07:00:00Z', txSignature: '1SxYz7...cA4k' },
+      { hop: 1, type: 'Assay', custodian: 'Rand Refinery', location: 'Germiston, ZA', payloadHash: 'ca978112ca1bbdcafac231b39a23dc4d', timestamp: '2025-05-18T12:00:00Z', txSignature: '3TzAb9...dC6m' },
+      { hop: 2, type: 'Transport', custodian: 'Malca-Amit', location: 'Germiston → Zurich', payloadHash: '3e23e8160039594a33894f6564e1b134', timestamp: '2025-06-02T16:00:00Z', txSignature: '5UbCd1...eE8o' },
+      { hop: 3, type: 'Vaulting', custodian: 'EQ Bank', location: 'Zurich, CH', payloadHash: '6b86b273ff34fce19d6b804eff5a3f57', timestamp: '2025-06-14T06:15:00Z', txSignature: '7WdEf3...fG0q' },
+    ],
+  },
+];
+
+export function getBatch(batchId: string): Batch | undefined {
+  return batches.find((b) => b.batchId === batchId);
+}
 
 export function formatNumber(n: number, decimals = 0): string {
   return new Intl.NumberFormat('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(n);

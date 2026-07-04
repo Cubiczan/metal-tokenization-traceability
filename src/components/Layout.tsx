@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Activity, Building2, Globe, Menu, Pickaxe, Shield, X } from "lucide-react";
+import { Activity, Building2, Globe, GitBranch, Menu, Pickaxe, Shield, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import WalletButton from "./WalletButton";
@@ -11,6 +11,7 @@ const navigation = [
   { name: "Explorer", href: "/", icon: Globe },
   { name: "Mine Operations", href: "/mine", icon: Pickaxe },
   { name: "Vault Dashboard", href: "/vault", icon: Building2 },
+  { name: "Traceability", href: "/traceability", icon: GitBranch },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
