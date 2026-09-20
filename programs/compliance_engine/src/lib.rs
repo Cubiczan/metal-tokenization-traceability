@@ -47,9 +47,9 @@ pub mod compliance_engine {
             emit!(ComplianceDenied {
                 sender: sender.wallet,
                 receiver: receiver.wallet,
-                reason: DENY_SENDER_NOT_APPROVED.to_string(),
+                reason: DenyReason::SenderNotApproved,
                 party: Some(sender.wallet),
-                at,
+                denied_at: at,
             });
             return Err(ComplianceError::SenderNotApproved.into());
         }
@@ -57,9 +57,9 @@ pub mod compliance_engine {
             emit!(ComplianceDenied {
                 sender: sender.wallet,
                 receiver: receiver.wallet,
-                reason: DENY_RECEIVER_NOT_APPROVED.to_string(),
+                reason: DenyReason::ReceiverNotApproved,
                 party: Some(receiver.wallet),
-                at,
+                denied_at: at,
             });
             return Err(ComplianceError::ReceiverNotApproved.into());
         }
@@ -67,9 +67,9 @@ pub mod compliance_engine {
             emit!(ComplianceDenied {
                 sender: sender.wallet,
                 receiver: receiver.wallet,
-                reason: DENY_ACCOUNT_FROZEN.to_string(),
+                reason: DenyReason::AccountFrozen,
                 party: Some(sender.wallet),
-                at,
+                denied_at: at,
             });
             return Err(ComplianceError::AccountFrozen.into());
         }
@@ -77,9 +77,9 @@ pub mod compliance_engine {
             emit!(ComplianceDenied {
                 sender: sender.wallet,
                 receiver: receiver.wallet,
-                reason: DENY_ACCOUNT_FROZEN.to_string(),
+                reason: DenyReason::AccountFrozen,
                 party: Some(receiver.wallet),
-                at,
+                denied_at: at,
             });
             return Err(ComplianceError::AccountFrozen.into());
         }
@@ -183,9 +183,14 @@ pub enum ComplianceError {
 
 // ── Denial audit events (row 9) ─────────────────────────────────────
 
-const DENY_SENDER_NOT_APPROVED: &str = "sender_not_approved";
-const DENY_RECEIVER_NOT_APPROVED: &str = "receiver_not_approved";
-const DENY_ACCOUNT_FROZEN: &str = "account_frozen";
+/// Closed, tooling-friendly denial vocabulary: stable across ABI upgrades,
+/// so dashboards and export pipelines match variants instead of strings.
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DenyReason {
+    SenderNotApproved,
+    ReceiverNotApproved,
+    AccountFrozen,
+}
 
 /// Row 9 (deny-as-audit-event): structured denial record emitted before the
 /// error return. Anchor events survive in the failed transaction's program
@@ -194,8 +199,8 @@ const DENY_ACCOUNT_FROZEN: &str = "account_frozen";
 pub struct ComplianceDenied {
     pub sender: Pubkey,
     pub receiver: Pubkey,
-    pub reason: String,
+    pub reason: DenyReason,
     /// The specific non-compliant party when the denial targets one account.
     pub party: Option<Pubkey>,
-    pub at: i64,
+    pub denied_at: i64,
 }
