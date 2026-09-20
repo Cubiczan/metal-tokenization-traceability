@@ -30,17 +30,59 @@ pub mod compliance_engine {
     }
 
     /// Check if a transfer is allowed between two wallets
+    ///
+    /// Row 9 (deny-as-audit-event): every denial emits a structured
+    /// `ComplianceDenied` event before returning the error, so refused
+    /// transfers persist as first-class audit records in the failed
+    /// transaction's program logs instead of bare error codes.
     pub fn check_transfer(
         ctx: Context<CheckTransfer>,
         _amount: u64,
     ) -> Result<()> {
         let sender = &ctx.accounts.sender_identity;
         let receiver = &ctx.accounts.receiver_identity;
+        let at = Clock::get()?.unix_timestamp;
 
-        require!(sender.approved, ComplianceError::SenderNotApproved);
-        require!(receiver.approved, ComplianceError::ReceiverNotApproved);
-        require!(!sender.frozen, ComplianceError::AccountFrozen);
-        require!(!receiver.frozen, ComplianceError::AccountFrozen);
+        if !sender.approved {
+            emit!(ComplianceDenied {
+                sender: sender.wallet,
+                receiver: receiver.wallet,
+                reason: DENY_SENDER_NOT_APPROVED.to_string(),
+                party: Some(sender.wallet),
+                at,
+            });
+            return Err(ComplianceError::SenderNotApproved.into());
+        }
+        if !receiver.approved {
+            emit!(ComplianceDenied {
+                sender: sender.wallet,
+                receiver: receiver.wallet,
+                reason: DENY_RECEIVER_NOT_APPROVED.to_string(),
+                party: Some(receiver.wallet),
+                at,
+            });
+            return Err(ComplianceError::ReceiverNotApproved.into());
+        }
+        if sender.frozen {
+            emit!(ComplianceDenied {
+                sender: sender.wallet,
+                receiver: receiver.wallet,
+                reason: DENY_ACCOUNT_FROZEN.to_string(),
+                party: Some(sender.wallet),
+                at,
+            });
+            return Err(ComplianceError::AccountFrozen.into());
+        }
+        if receiver.frozen {
+            emit!(ComplianceDenied {
+                sender: sender.wallet,
+                receiver: receiver.wallet,
+                reason: DENY_ACCOUNT_FROZEN.to_string(),
+                party: Some(receiver.wallet),
+                at,
+            });
+            return Err(ComplianceError::AccountFrozen.into());
+        }
 
         msg!("Transfer approved");
         Ok(())
@@ -137,4 +179,23 @@ pub enum ComplianceError {
     ReceiverNotApproved,
     #[msg("Account is frozen")]
     AccountFrozen,
+}
+
+// ── Denial audit events (row 9) ─────────────────────────────────────
+
+const DENY_SENDER_NOT_APPROVED: &str = "sender_not_approved";
+const DENY_RECEIVER_NOT_APPROVED: &str = "receiver_not_approved";
+const DENY_ACCOUNT_FROZEN: &str = "account_frozen";
+
+/// Row 9 (deny-as-audit-event): structured denial record emitted before the
+/// error return. Anchor events survive in the failed transaction's program
+/// logs, so every refused transfer stays queryable as an audit record.
+#[event]
+pub struct ComplianceDenied {
+    pub sender: Pubkey,
+    pub receiver: Pubkey,
+    pub reason: String,
+    /// The specific non-compliant party when the denial targets one account.
+    pub party: Option<Pubkey>,
+    pub at: i64,
 }

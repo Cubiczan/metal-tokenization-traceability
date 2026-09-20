@@ -127,6 +127,22 @@ src/
 scripts/             deploy.sh, create-mints.sh
 ```
 
+## Propagation decisions (OnChain wave B)
+
+- **Row 9 (deny-as-audit-event) — ADOPTED.** The compliance engine's
+  transfer gate (`programs/compliance_engine/src/lib.rs`,
+  `check_transfer`) denied non-compliant movements — sender/receiver not
+  KYC-approved, account frozen — but only via bare `require!` error codes,
+  leaving no structured record of *who* was denied *why*. Every denial now
+  emits a typed `ComplianceDenied` event (sender, receiver, reason,
+  non-compliant party, timestamp) before returning the error, so refused
+  transfers persist as first-class audit records in the failed
+  transaction's program logs — queryable for compliance reporting instead
+  of an opaque Anchor error. Verified with `cargo check` (zero errors);
+  the repo has no Rust test harness or CI to extend.
+
+---
+
 ## License
 
 MIT.
